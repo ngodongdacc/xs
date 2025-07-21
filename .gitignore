@@ -3,6 +3,9 @@
 /node_modules
 /build
 
+venv310
+venv
+
 # Logs
 logs
 *.log

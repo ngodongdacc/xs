@@ -14,9 +14,16 @@ export class AiService {
     }
 
     const scriptPath = path.join(__dirname, '..', '..', 'model', 'predict.py');
-    console.log('scriptPath:: ', scriptPath);
+    const pythonPath = path.join(
+      __dirname,
+      '..',
+      '..',
+      'venv310',
+      'bin',
+      'python',
+    );
     return new Promise((resolve, reject) => {
-      const python = spawn('python3', [scriptPath], {
+      const python = spawn(pythonPath, [scriptPath], {
         stdio: ['pipe', 'pipe', 'inherit'],
       });
 
@@ -24,27 +31,20 @@ export class AiService {
       python.stdin.end();
 
       let output = '';
-      python.stdout.on('data', (data) => {
-        console.error(`PYTHON ERROR: ${data}`);
-        output += data;
+
+      python.stdout.on('data', (data: Buffer) => {
+        const chunk = data.toString();
+        console.error(`PYTHON ERROR: ${chunk}`);
+        output += chunk;
       });
 
       python.on('close', () => {
         try {
-          if (!output.trim()) {
+          console.log('output:: ', output);
+          if (!output) {
             throw new Error('Python script returned empty output');
           }
-          const result: PredictionResult = JSON.parse(
-            output,
-          ) as PredictionResult;
-          //   const probs: number[] = result;
-          //   console.log('probs:: ', probs);
-          //   const top3 = probs
-          //     .map((p, idx) => ({ number: idx + 1, prob: p }))
-          //     .sort((a, b) => b.prob - a.prob)
-          //     .slice(0, 3);
-
-          resolve(result);
+          resolve(JSON.parse(output));
         } catch (err) {
           reject(err instanceof Error ? err : new Error(String(err)));
         }
