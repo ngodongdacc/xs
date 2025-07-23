@@ -35,7 +35,8 @@ export class KetQuaNetService {
   }
 
   async convertData() {
-    const startPath = process.cwd() + '/startDay.txt';
+    const startPath = process.cwd() + '/newDay.txt';
+    // const startPath = process.cwd() + '/startDay.txt';
     const startDay = await fs.readFile(startPath, 'utf-8');
     let i = 0;
     const data: {
@@ -44,7 +45,7 @@ export class KetQuaNetService {
       output: number[];
     }[] = [];
     let endDay: string = '';
-    const limit = 100;
+    const limit = 1;
     const sleep = (ms: number) =>
       new Promise((resolve) => setTimeout(resolve, ms));
     while (i < limit) {
@@ -114,7 +115,7 @@ export class KetQuaNetService {
     }[];
     await fs.writeFile(
       scriptPath,
-      JSON.stringify([...jsonArray, ...input], null, ''),
+      JSON.stringify([...input, ...jsonArray], null, ''),
       'utf-8',
     );
   }
