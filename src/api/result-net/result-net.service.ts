@@ -4,11 +4,14 @@ import { AxiosResponse } from 'axios';
 import { firstValueFrom, map } from 'rxjs';
 import * as cheerio from 'cheerio';
 import * as fs from 'fs/promises';
-import * as path from 'path';
 import * as dayjs from 'dayjs';
+import { DAY_FORMAT_DD_MM_YYY_CONSTANT } from 'src/common';
+import { SummaryDataResultNetDto } from './dto/summary-data-result-net.dto';
+
+// Kích hoạt plugin
 
 @Injectable()
-export class KetQuaNetService {
+export class ResultNetService {
   constructor(private readonly httpService: HttpService) {}
 
   getResultDate(day: string): Promise<number[]> {
@@ -34,28 +37,27 @@ export class KetQuaNetService {
     return firstValueFrom(result);
   }
 
-  async convertData() {
-    const startPath = process.cwd() + '/newDay.txt';
-    // const startPath = process.cwd() + '/startDay.txt';
-    const startDay = await fs.readFile(startPath, 'utf-8');
+  async summaryData(body: SummaryDataResultNetDto) {
+    const { startDay, limit = 1 } = body;
     let i = 0;
     const data: {
       date: string;
       input: number[];
       output: number[];
     }[] = [];
-    let endDay: string = '';
-    const limit = 1;
+
     const sleep = (ms: number) =>
       new Promise((resolve) => setTimeout(resolve, ms));
-    while (i < limit) {
-      const day = dayjs(startDay)
-        .subtract(i + 1, 'day') // hoặc 'days' đều được
-        .format('DD-MM-YYYY');
 
-      const dayYes = dayjs(startDay)
-        .subtract(i + 2, 'day') // hoặc 'days' đều được
-        .format('DD-MM-YYYY');
+    while (i < limit) {
+      const startDayFormat = startDay.split('-').reverse().join('-');
+      const day = dayjs(startDayFormat)
+        .subtract(i, 'day') // hoặc 'days' đều được
+        .format(DAY_FORMAT_DD_MM_YYY_CONSTANT);
+
+      const dayYes = dayjs(startDayFormat)
+        .subtract(i + 1, 'day') // hoặc 'days' đều được
+        .format(DAY_FORMAT_DD_MM_YYY_CONSTANT);
 
       const [result, yesResult] = await Promise.all([
         this.getResultDate(day),
@@ -63,21 +65,21 @@ export class KetQuaNetService {
       ]);
 
       if (result && yesResult) {
-        const arrResultYes = new Array(100).fill(0);
         const arrResult = new Array(100).fill(0);
+        const arrResultYes = new Array(100).fill(0);
+
         for (const num of result) {
           if (num >= 0 && num < 100) {
             arrResult[num] = 1;
           }
         }
+
         for (const num of yesResult) {
           if (num >= 0 && num < 100) {
             arrResultYes[num] = 1;
           }
         }
-        endDay = dayjs(startDay)
-          .subtract(i + 1, 'day')
-          .format('YYYY-MM-DD');
+
         data.push({
           date: day,
           input: arrResultYes as number[],
@@ -86,15 +88,12 @@ export class KetQuaNetService {
       } else {
         i = limit;
       }
-      console.log(`i:: ${i} --- day: ${endDay}`);
+      console.log(`i:: ${i} --- day: ${day}`);
       i++;
 
       await sleep(1000);
     }
-    if (endDay) {
-      await fs.writeFile(startPath, endDay, 'utf-8');
-      await this.saveResult(data);
-    }
+    await this.saveResult(data);
     return data;
   }
 
@@ -105,7 +104,7 @@ export class KetQuaNetService {
       output: number[];
     }[],
   ) {
-    const scriptPath = path.join(__dirname, '..', '..', 'model', 'data.json');
+    const scriptPath = process.cwd() + '/model/data-6.json';
     // Đọc dữ liệu từ file
     const data: string = await fs.readFile(scriptPath, 'utf-8');
     const jsonArray = JSON.parse(data) as {
@@ -113,10 +112,8 @@ export class KetQuaNetService {
       input: number[];
       output: number[];
     }[];
-    await fs.writeFile(
-      scriptPath,
-      JSON.stringify([...input, ...jsonArray], null, ''),
-      'utf-8',
-    );
+    const dataJson = [...input, ...jsonArray];
+    dataJson.pop();
+    await fs.writeFile(scriptPath, JSON.stringify(dataJson, null, ''), 'utf-8');
   }
 }

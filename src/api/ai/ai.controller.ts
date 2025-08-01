@@ -8,6 +8,6 @@ export class AiController {
 
   @Post('predict')
   async predict(@Body() body: PredictDto) {
-    return this.aiService.predict(body.data);
+    return this.aiService.predict(body);
   }
 }

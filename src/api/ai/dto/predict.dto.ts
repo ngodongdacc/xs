@@ -1,8 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class PredictDto {
+  @ApiProperty()
+  day: string;
+
   @ApiProperty({
     type: [Number],
   })
-  data: number[];
+  input: number[];
 }

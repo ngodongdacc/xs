@@ -1,18 +1,18 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AiController } from './ai/ai.controller';
-import { AiService } from './ai/ai.service';
+import { AiController } from './api/ai/ai.controller';
+import { AiService } from './api/ai/ai.service';
 import { RouterModule } from '@nestjs/core';
-import { KetQuaNetModule } from './ket-qua-net/ketQuaNet.module';
+import { ResultNetModule } from './api/result-net/result-net.module';
 
 @Module({
   imports: [
-    KetQuaNetModule,
+    ResultNetModule,
     RouterModule.register([
       {
-        path: 'ket-qua-net',
-        module: KetQuaNetModule,
+        path: 'result-net',
+        module: ResultNetModule,
       },
     ]),
   ],

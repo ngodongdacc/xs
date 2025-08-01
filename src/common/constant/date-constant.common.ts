@@ -1,0 +1,1 @@
+export const DAY_FORMAT_DD_MM_YYY_CONSTANT = 'DD-MM-YYYY';

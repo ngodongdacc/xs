@@ -1,9 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.setGlobalPrefix('api');
 
   // Swagger
   const options = new DocumentBuilder()
@@ -25,7 +28,14 @@ async function bootstrap() {
       persistAuthorization: true,
     },
   });
-
-  await app.listen(process.env.PORT ?? 4000);
+  const logger = new Logger('Main');
+  const port = process.env.PORT ?? 4000;
+  await app
+    .listen(port)
+    .then(() =>
+      logger.verbose(
+        'app start with swwagger:: ' + 'http://localhost:' + port + '/api',
+      ),
+    );
 }
 bootstrap();

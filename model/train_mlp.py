@@ -4,7 +4,7 @@ from tensorflow import keras
 from sklearn.model_selection import train_test_split
 
 # Load dữ liệu
-with open("data.json", "r") as f:
+with open("data-6.json", "r") as f:
     raw_data = json.load(f)
 
 X = np.array([sample["input"] for sample in raw_data])
